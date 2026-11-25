@@ -3,6 +3,14 @@
 // Tipos: "Novo", "Melhor" e "Corrigido".
 window.NOVIDADES = [
   {
+    versao: "1.1.3",
+    resumo: "Correções no Linux: mancha na animação e cliques depois do login",
+    itens: [
+      ["Corrigido", "No Linux, a animação deixava uma mancha preta"],
+      ["Corrigido", "No Linux, os botões podiam não funcionar depois do login"],
+    ],
+  },
+  {
     versao: "1.1.2",
     resumo: "Central mais leve no Linux",
     itens: [

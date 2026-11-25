@@ -104,6 +104,17 @@ mod linux {
         let j = janela.clone();
         let _ = janela.with_webview(move |w| {
             let web = w.inner();
+            // A escala da tela pode mudar com a Eva aberta (no login, o GNOME aplica a escala
+            // um pouco depois). O recorte e a posição ficariam no tamanho antigo: refaz os dois.
+            let (j_escala, area_escala) = (j.clone(), area.clone());
+            web.connect_scale_factor_notify(move |_| {
+                let (j, area) = (j_escala.clone(), area_escala.clone());
+                gtk::glib::timeout_add_local_once(std::time::Duration::from_millis(300), move || {
+                    let a = *area.lock().unwrap();
+                    recortar(&j, a);
+                    let _ = super::posicionar(&j);
+                });
+            });
             web.add_events(
                 gtk::gdk::EventMask::ENTER_NOTIFY_MASK
                     | gtk::gdk::EventMask::LEAVE_NOTIFY_MASK
@@ -145,8 +156,10 @@ mod linux {
         if tem("WAYLAND_DISPLAY") && !tem("GDK_BACKEND") {
             std::env::set_var("GDK_BACKEND", "x11");
         }
-        // Evita janela em branco/preta no XWayland com algumas placas (principalmente NVIDIA).
-        if !tem("WEBKIT_DISABLE_DMABUF_RENDERER") {
+        // Só em NVIDIA: evita janela em branco no XWayland. Nas outras placas fica ligado, senão
+        // o WebKit do AppImage não apaga o quadro anterior e a animação deixa uma mancha preta.
+        let nvidia = std::path::Path::new("/proc/driver/nvidia/version").exists();
+        if nvidia && !tem("WEBKIT_DISABLE_DMABUF_RENDERER") {
             std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
         }
     }
@@ -161,13 +174,6 @@ mod linux {
             // Se a Eva encolheu e o mouse ficou de fora, isso também conta como sair.
             avisar(&j, a);
         });
-    }
-
-    /// No GNOME a janela às vezes nasce uns 37 px mais alta que o pedido; a sobra é
-    /// transparente, então só o painel da Central (700×512) recebe cliques.
-    pub fn recortar_central(janela: &WebviewWindow) {
-        let j = janela.clone();
-        let _ = janela.run_on_main_thread(move || recortar(&j, Area { x: 0.0, y: 0.0, w: 700.0, h: 512.0 }));
     }
 
     /// Chamar na thread principal (GTK).

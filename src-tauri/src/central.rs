@@ -72,12 +72,9 @@ pub fn abrir(app: &AppHandle) -> tauri::Result<()> {
             Ok(())
         }
         None => {
-            let janela = criar(app, "central")?;
-            #[cfg(target_os = "linux")]
-            crate::linux::recortar_central(&janela);
-            #[cfg(not(target_os = "linux"))]
-            let _ = janela;
-            Ok(())
+            // Sem recorte de cliques: ele podia ficar no tamanho errado quando a escala da tela
+            // muda logo depois do login, e aí nenhum botão funcionava.
+            criar(app, "central").map(|_| ())
         }
     }
 }
