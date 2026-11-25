@@ -1,0 +1,16 @@
+node_modules/
+src-tauri/target/
+src-tauri/gen/
+
+# Chaves e segredos: nunca vão pro GitHub
+*.key
+*.key.pub
+*.pem
+.env
+.env.*
+.tauri/
+
+# Pessoais: ficam só no PC
+hooks/
+.claude/
+*.bundle

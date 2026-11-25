@@ -1,0 +1,68 @@
+# Gera os instaladores de Windows e Linux e cria um rascunho de versão neste repositório.
+# Só roda quando você envia uma etiqueta de versão (ex.: v1.1.1).
+name: Publicar versão
+on:
+  push:
+    tags: ["v*.*.*"]
+permissions:
+  contents: read
+jobs:
+  construir:
+    strategy:
+      matrix:
+        include:
+          - { sistema: ubuntu-22.04, pacote: appimage }
+          - { sistema: windows-latest, pacote: nsis }
+    runs-on: ${{ matrix.sistema }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with: { node-version: 22 }
+      - name: Bibliotecas do Linux
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libdbus-1-dev libxdo-dev libssl-dev
+      - name: Confere se a etiqueta é a versão do programa
+        shell: bash
+        run: test "v$(node -p "require('./src-tauri/tauri.conf.json').version")" = "$GITHUB_REF_NAME"
+      - run: npm ci
+      - name: Testes
+        working-directory: src-tauri
+        run: cargo test --locked
+      - name: Instalador assinado
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          echo '{"bundle":{"createUpdaterArtifacts":true}}' > ci.json
+          npx tauri build --bundles ${{ matrix.pacote }} --config ci.json
+          mkdir saida
+          V="${GITHUB_REF_NAME#v}"
+          B=src-tauri/target/release/bundle
+          if [ "${{ matrix.pacote }}" = appimage ]; then O="$B/appimage/My Eva_${V}_amd64.AppImage"; N="my-eva_${V}_amd64.AppImage"
+          else O="$B/nsis/My Eva_${V}_x64-setup.exe"; N="my-eva_${V}_x64-setup.exe"; fi
+          cp "$O" "saida/$N"
+          cp "$O.sig" "saida/$N.sig"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with: { name: "${{ matrix.pacote }}", path: saida, if-no-files-found: error }
+
+  publicar:
+    needs: construir
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with: { node-version: 22 }
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with: { path: saida, merge-multiple: true }
+      - run: node .github/scripts/manifesto.mjs saida "${GITHUB_REF_NAME#v}" "$GITHUB_REPOSITORY"
+      # Rascunho: nenhuma Eva recebe até você revisar e clicar em publicar.
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" saida/* --verify-tag --draft --title "My Eva $GITHUB_REF_NAME" --notes-file <(node -p "require('./saida/latest.json').notes")

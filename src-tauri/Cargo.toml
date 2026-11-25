@@ -1,0 +1,39 @@
+[package]
+name = "my-eva"
+version = "1.1.1"
+description = "Eva: central de avisos do PC"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+serde = { version = "1", features = ["derive"] }
+tauri-plugin-global-shortcut = "2"
+tauri-plugin-autostart = "2"
+# Uma Eva só: abrir de novo traz a Central.
+tauri-plugin-single-instance = "2"
+# Atualização pela Central (só usa a internet se houver endereço configurado).
+tauri-plugin-updater = "2"
+base64 = "0.22"
+tiny_http = "0.12"
+serde_json = "1"
+# Senha da ponte: gerador criptográfico do sistema (Windows e Linux).
+getrandom = "0.3"
+
+# Só no Windows: bateria do DS4 por HID e música pelos controles de mídia do Windows.
+[target.'cfg(windows)'.dependencies]
+hidapi = "2"
+windows = { version = "0.61", features = ["Media_Control", "Foundation", "Foundation_Collections", "Storage_Streams", "Win32_System_WinRT"] }
+
+# Só no Linux: música pelo MPRIS (D-Bus) e região de clique da janela (GTK).
+[target.'cfg(target_os = "linux")'.dependencies]
+mpris = "2"
+gtk = "0.18"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true

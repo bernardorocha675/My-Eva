@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Eva · Central</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="central.css">
+</head>
+<body>
+  <main id="central">
+    <!-- a mascote vem do index.html (central.js), pra não ter dois desenhos -->
+    <aside class="ct-lado" data-tauri-drag-region>
+      <div class="ct-mascote" id="ct-mascote" data-tauri-drag-region></div>
+      <span class="ct-nome" data-tauri-drag-region>EVA</span>
+      <span class="ct-versao" id="ct-versao" data-tauri-drag-region></span>
+    </aside>
+
+    <section class="ct-corpo">
+      <header class="ct-topo" data-tauri-drag-region>
+        <button class="ct-fechar" id="ct-fechar" aria-label="Fechar a Central">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+        </button>
+      </header>
+      <div class="ct-textos" aria-live="polite">
+        <h1 id="ct-titulo">Tudo pronto</h1>
+        <p id="ct-sub">Quando quiser, é só me ligar</p>
+        <div class="ct-barra" id="ct-barra" hidden><div id="ct-nivel"></div></div>
+      </div>
+
+      <nav class="ct-abas">
+        <button data-aba="novidades" aria-pressed="true">Novidades</button>
+        <button data-aba="versoes" aria-pressed="false">Versões</button>
+        <button data-aba="ajustes" aria-pressed="false">Ajustes</button>
+      </nav>
+      <div class="ct-aba" id="aba-novidades"></div>
+      <div class="ct-aba" id="aba-versoes" hidden></div>
+      <div class="ct-aba" id="aba-ajustes" hidden>
+        <label class="ct-ajuste" id="ct-aj-atualizar" hidden><span>Atualizar sozinha</span><input type="checkbox" id="ct-atualizar-auto"></label>
+        <label class="ct-ajuste"><span>Iniciar com o sistema</span><input type="checkbox" id="ct-inicio"></label>
+        <p class="ct-nota" id="ct-nota-rede" hidden>Com "Atualizar sozinha" desligado, a Central não usa a internet.</p>
+      </div>
+
+      <button class="ct-instalar" id="ct-instalar" hidden></button>
+      <button class="ct-ligar" id="ct-ligar">Ligar a Eva</button>
+    </section>
+
+    <div class="ct-pergunta" id="ct-pergunta" hidden>
+      <div class="ct-caixa" role="alertdialog" aria-labelledby="cp-titulo" aria-describedby="cp-sub">
+        <div class="ct-caixa-linha">
+          <div class="ct-mascote pequena" id="cp-mascote"></div>
+          <div>
+            <h2 id="cp-titulo">O Claude está esperando você</h2>
+            <p id="cp-sub">Se eu desligar agora, o pedido volta pro terminal.</p>
+          </div>
+        </div>
+        <div class="ct-caixa-botoes">
+          <button class="ct-principal" id="cp-ver">Ver o pedido</button>
+          <button class="ct-perigo" id="cp-desligar">Desligar mesmo assim</button>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script src="novidades.js"></script>
+  <script src="central.js"></script>
+</body>
+</html>

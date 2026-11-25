@@ -1,0 +1,79 @@
+/* Central: estilo "Noite". Usa as cores e a mascote do style.css. */
+[hidden] { display: none !important; }
+
+#central {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* fixo: no Linux a janela às vezes nasce um pouco mais alta */
+  width: 700px;
+  height: 512px;
+  display: flex;
+  overflow: hidden;
+  border-radius: 26px;
+  border: 1px solid #2b2836;
+  background: var(--fundo);
+  transition: opacity 0.35s ease, transform 0.4s var(--sai);
+}
+/* ao ligar: encolhe subindo, em direção ao lugar da Eva */
+#central.saindo { opacity: 0; transform: translateY(-60px) scale(0.5); pointer-events: none; }
+
+#central button { font: inherit; color: inherit; border: none; background: transparent; cursor: pointer; }
+#central button:focus-visible, #central input:focus-visible { outline: 2px solid var(--destaque-texto); outline-offset: 2px; }
+
+.ct-lado {
+  width: 250px; flex: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+  background: #121019;
+}
+.ct-mascote { width: 170px; height: 170px; }
+.ct-mascote.pequena { width: 80px; height: 80px; flex: none; }
+.ct-mascote .mascote { position: static; width: 100%; height: 100%; pointer-events: none; }
+.ct-nome { font-size: 30px; font-weight: 300; letter-spacing: 12px; padding-left: 12px; }
+.ct-versao { font-size: 13px; color: #aca8bd; }
+
+.ct-corpo { flex: 1; min-width: 0; padding: 14px 28px 28px; display: flex; flex-direction: column; gap: 16px; }
+.ct-topo { display: flex; justify-content: flex-end; margin-right: -14px; }
+.ct-fechar { width: 44px; height: 44px; border-radius: 12px; }
+#central .ct-fechar { color: #aca8bd; }
+#central .ct-fechar:hover { background: var(--fundo-2); color: var(--texto); }
+.ct-fechar svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; stroke-linecap: round; fill: none; }
+.ct-textos { min-height: 62px; }
+.ct-textos h1 { font-size: 26px; font-weight: 600; margin-bottom: 6px; }
+.ct-textos p { font-size: 14px; color: #aca8bd; }
+
+.ct-abas { display: flex; gap: 20px; border-bottom: 1px solid #2b2836; }
+#central .ct-abas button { min-height: 44px; font-size: 14px; color: #aca8bd; border-bottom: 2px solid transparent; }
+#central .ct-abas button[aria-pressed="true"] { color: var(--texto); font-weight: 600; border-bottom-color: var(--destaque-texto); }
+
+.ct-aba { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; font-size: 13.5px; line-height: 1.4; }
+.ct-aba .ct-sobre { font-size: 13px; font-weight: 600; color: #b3a9f5; }
+.ct-item { display: flex; gap: 10px; align-items: baseline; }
+.ct-item b { flex: none; width: 70px; font-size: 12px; font-weight: 600; color: #e8c766; }
+.ct-item b.novo { color: #6fd99a; }
+.ct-item b.versao { width: 44px; font-size: 13px; color: #b3a9f5; }
+.ct-item span { color: #c9c6d6; }
+.ct-ajuste { min-height: 44px; display: flex; align-items: center; justify-content: space-between; font-size: 14px; }
+.ct-ajuste input { width: 20px; height: 20px; accent-color: #8375e6; }
+
+#central .ct-ligar { flex: none; min-height: 56px; border-radius: 28px; background: #6353d3; color: #fff; font-size: 16px; font-weight: 600; }
+#central .ct-ligar:hover { background: #6f60dc; }
+#central .ct-ligar:disabled { background: #26232f; color: #aca8bd; cursor: default; }
+#central .ct-ligar.desligar { background: #26232f; color: var(--texto); }
+
+.ct-pergunta { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(7, 6, 10, 0.75); }
+.ct-caixa { width: 480px; padding: 24px; border-radius: 22px; background: var(--fundo); border: 1px solid #9a5f30; display: flex; flex-direction: column; gap: 20px; }
+.ct-caixa-linha { display: flex; gap: 18px; align-items: center; }
+.ct-caixa h2 { font-size: 19px; font-weight: 600; margin-bottom: 6px; }
+.ct-caixa p { font-size: 13.5px; line-height: 1.45; color: #aca8bd; }
+.ct-caixa-botoes { display: flex; gap: 12px; }
+#central .ct-caixa-botoes button { flex: 1; min-height: 50px; border-radius: 25px; font-size: 14px; font-weight: 600; }
+#central .ct-principal { background: #6353d3; color: #fff; }
+#central .ct-perigo { border: 1px solid #9c4646; color: #f5a5a5; }
+
+.ct-barra { height: 6px; margin-top: 10px; border-radius: 3px; background: #26232f; overflow: hidden; }
+.ct-barra div { height: 100%; width: 0; background: #8375e6; transition: width 0.3s linear; }
+.ct-nota { font-size: 12.5px; line-height: 1.4; color: #aca8bd; }
+#central .ct-instalar { flex: none; min-height: 46px; border-radius: 23px; border: 1px solid #5c50a8; font-size: 14px; font-weight: 600; color: #c9bfff; }
+#central .ct-instalar:hover { background: #1a1730; }
+#central .ct-instalar:disabled { opacity: 0.5; cursor: default; }
