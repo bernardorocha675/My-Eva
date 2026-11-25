@@ -90,7 +90,7 @@ fn codigo(e: Error) -> String {
         // Assinatura legítima, mas de outra versão: alguém pode estar forçando uma antiga.
         | Error::SignedVersionMismatch { .. }
         | Error::MissingSignedVersion => "assinatura",
-        Error::Reqwest(_) | Error::Network(_) | Error::ReleaseNotFound => "rede",
+        Error::Reqwest(_) | Error::Network(_) => "rede",
         _ => "falhou",
     }
     .into()
@@ -125,14 +125,18 @@ pub async fn atualizacao_procurar(app: AppHandle, estado: State<'_, Atualizacao>
     if !existe(&app) || !ligada() {
         return Ok(None);
     }
-    let achada = app
+    let resultado = app
         .updater_builder()
         .timeout(Duration::from_secs(10))
         .build()
         .map_err(codigo)?
         .check()
-        .await
-        .map_err(codigo)?;
+        .await;
+    let achada = match resultado {
+        // O endereço respondeu, mas ainda não há versão publicada: não é falta de internet.
+        Err(Error::ReleaseNotFound) => None,
+        outro => outro.map_err(codigo)?,
+    };
     let nova = achada.as_ref().map(|u| Nova {
         versao: u.version.clone(),
         notas: u.body.clone().unwrap_or_default(),

@@ -29,6 +29,12 @@
 .ct-mascote { width: 170px; height: 170px; }
 .ct-mascote.pequena { width: 80px; height: 80px; flex: none; }
 .ct-mascote .mascote { position: static; width: 100%; height: 100%; pointer-events: none; }
+/* No Linux, as animações contínuas da mascote gastavam ~25% de um núcleo com a Central
+   aberta. Lá ela fica parada e o central.js faz piscar de vez em quando. */
+.linux #central .palpebra, .linux #central .brilho { animation: none; }
+.linux #central .brilho { transform: translateX(-20px); }
+.linux #central .palpebra { transition-duration: 0.09s; }
+.linux #central .mascote.piscando .palpebra { transform: translateY(10px); }
 .ct-nome { font-size: 30px; font-weight: 300; letter-spacing: 12px; padding-left: 12px; }
 .ct-versao { font-size: 13px; color: #aca8bd; }
 

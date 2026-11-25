@@ -3,6 +3,14 @@
 // Tipos: "Novo", "Melhor" e "Corrigido".
 window.NOVIDADES = [
   {
+    versao: "1.1.2",
+    resumo: "Central mais leve no Linux",
+    itens: [
+      ["Melhor", "No Linux, a Central aberta gasta bem menos processador"],
+      ["Corrigido", "Aviso errado de falta de internet"],
+    ],
+  },
+  {
     versao: "1.1.1",
     resumo: "Central para ligar e desligar a Eva e correções no Linux",
     itens: [

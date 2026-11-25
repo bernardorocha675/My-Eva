@@ -1,9 +1,18 @@
 // Central: liga e desliga a Eva, mostra as novidades (guardadas no programa) e os ajustes.
 const temTauri = !!window.__TAURI__;
-const DEMO = { ligada: false, versao: "1.1.1", inicia: true, perguntar: false };
+const DEMO = { ligada: false, versao: "1.1.2", inicia: true, perguntar: false };
 const invoke = temTauri ? window.__TAURI__.core.invoke : async (cmd) => (cmd === "central_estado" ? DEMO : null);
 const listen = temTauri ? window.__TAURI__.event.listen : async () => {};
 
+if (/Linux/.test(navigator.userAgent) && !/Android/.test(navigator.userAgent)) {
+  document.documentElement.classList.add("linux");
+  setInterval(() => {
+    const m = document.querySelector("#ct-mascote .mascote");
+    if (!m || document.hidden) return;
+    m.classList.add("piscando");
+    setTimeout(() => m.classList.remove("piscando"), 150);
+  }, 8000);
+}
 const el = (id) => document.getElementById(id);
 const central = el("central");
 const botao = el("ct-ligar");
