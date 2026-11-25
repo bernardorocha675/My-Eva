@@ -1,6 +1,6 @@
 // Central: liga e desliga a Eva, mostra as novidades (guardadas no programa) e os ajustes.
 const temTauri = !!window.__TAURI__;
-const DEMO = { ligada: false, versao: "1.1.3", inicia: true, perguntar: false };
+const DEMO = { ligada: false, versao: "1.1.4", inicia: true, perguntar: false };
 const invoke = temTauri ? window.__TAURI__.core.invoke : async (cmd) => (cmd === "central_estado" ? DEMO : null);
 const listen = temTauri ? window.__TAURI__.event.listen : async () => {};
 

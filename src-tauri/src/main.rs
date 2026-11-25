@@ -76,8 +76,10 @@ fn definir_area(area: Area, estado: tauri::State<AreaShared>, janela: WebviewWin
 mod linux {
     use super::{Area, AreaShared};
     use gtk::prelude::{WidgetExt, WidgetExtManual};
+    use gtk::prelude::{Cast, MonitorExt};
     use std::sync::Mutex;
-    use tauri::{Emitter, WebviewWindow};
+    use std::time::{Duration, Instant, SystemTime};
+    use tauri::{AppHandle, Emitter, Manager, WebviewWindow};
 
     /// Onde o mouse está, pelos eventos do GTK (None = fora da Eva).
     static PONTEIRO: Mutex<Option<(f64, f64)>> = Mutex::new(None);
@@ -109,10 +111,13 @@ mod linux {
             let (j_escala, area_escala) = (j.clone(), area.clone());
             web.connect_scale_factor_notify(move |_| {
                 let (j, area) = (j_escala.clone(), area_escala.clone());
-                gtk::glib::timeout_add_local_once(std::time::Duration::from_millis(300), move || {
-                    let a = *area.lock().unwrap();
-                    recortar(&j, a);
-                    let _ = super::posicionar(&j);
+                anotar(&j, "escala mudou");
+                gtk::glib::timeout_add_local_once(Duration::from_millis(300), move || {
+                    remapear(&j, move |j| {
+                        let a = *area.lock().unwrap();
+                        recortar(j, a);
+                        let _ = super::posicionar(j);
+                    });
                 });
             });
             web.add_events(
@@ -174,6 +179,124 @@ mod linux {
             // Se a Eva encolheu e o mouse ficou de fora, isso também conta como sair.
             avisar(&j, a);
         });
+    }
+
+    // ---- Login no GNOME ----
+    // Logo depois do login o GNOME ainda vai aplicar a escala da tela. Uma janela criada
+    // antes disso aparece, mas o GNOME não entrega mais o mouse a ela: o clique atravessa.
+    // Por isso a Central espera a tela parar de mudar e, se a escala mudar com uma janela
+    // aberta, ela é escondida e mostrada de novo (o GNOME passa a tratá-la como nova).
+
+    /// A tela como o GTK vê agora: escala e tamanho do monitor principal.
+    fn tela() -> Option<(i32, i32, i32)> {
+        let d = gtk::gdk::Display::default()?;
+        let m = d.primary_monitor().or_else(|| d.monitor(0))?;
+        let g = m.geometry();
+        Some((m.scale_factor(), g.width(), g.height()))
+    }
+
+    /// A sessão gráfica começou há pouco? (idade do soquete do Wayland)
+    fn login_recente() -> bool {
+        let (Ok(pasta), Ok(nome)) = (std::env::var("XDG_RUNTIME_DIR"), std::env::var("WAYLAND_DISPLAY")) else {
+            return false;
+        };
+        std::fs::metadata(std::path::Path::new(&pasta).join(nome))
+            .and_then(|m| m.modified())
+            .ok()
+            .and_then(|t| SystemTime::now().duration_since(t).ok())
+            .is_some_and(|idade| idade < Duration::from_secs(120))
+    }
+
+    /// Abre a Central; num login recente, só depois de a tela ficar parada.
+    /// Chamar na thread principal (GTK).
+    pub fn abrir_quando_pronta(app: &AppHandle) {
+        let abrir = |app: &AppHandle| {
+            if let Err(e) = crate::central::abrir(app) {
+                eprintln!("[eva] central: {e}");
+            }
+        };
+        if !login_recente() {
+            escrever(&format!("abriu direto tela={:?}", tela()));
+            return abrir(app);
+        }
+        const PARADA: Duration = Duration::from_secs(4);
+        const LIMITE: Duration = Duration::from_secs(30);
+        let (app, inicio) = (app.clone(), Instant::now());
+        let mut ultima = tela();
+        let mut desde = Instant::now();
+        escrever(&format!("login: esperando, tela={ultima:?}"));
+        gtk::glib::timeout_add_local(Duration::from_millis(250), move || {
+            // Você abriu pelo menu enquanto esperava.
+            if app.get_webview_window("central").is_some() {
+                return gtk::glib::ControlFlow::Break;
+            }
+            let agora = tela();
+            if agora != ultima {
+                escrever(&format!("login: tela mudou {ultima:?} -> {agora:?}"));
+                ultima = agora;
+                desde = Instant::now();
+            }
+            if (agora.is_some() && desde.elapsed() >= PARADA) || inicio.elapsed() >= LIMITE {
+                escrever(&format!("login: abriu após {:.1}s tela={agora:?}", inicio.elapsed().as_secs_f32()));
+                abrir(&app);
+                return gtk::glib::ControlFlow::Break;
+            }
+            gtk::glib::ControlFlow::Continue
+        });
+    }
+
+    /// Central: se a escala mudar com ela aberta, some e volta já centralizada.
+    pub fn vigiar_escala_central(janela: &WebviewWindow) {
+        let j = janela.clone();
+        let _ = janela.with_webview(move |w| {
+            let web = w.inner();
+            anotar(&j, "central criada");
+            let depois = j.clone();
+            gtk::glib::timeout_add_local_once(Duration::from_secs(3), move || anotar(&depois, "central 3s"));
+            web.connect_scale_factor_notify(move |_| {
+                anotar(&j, "escala mudou");
+                let j = j.clone();
+                gtk::glib::timeout_add_local_once(Duration::from_millis(300), move || {
+                    remapear(&j, |j| {
+                        let _ = j.center();
+                    });
+                });
+            });
+        });
+    }
+
+    /// Esconde e mostra a janela, ajustando a posição no meio. Só se ela estiver visível.
+    fn remapear(j: &WebviewWindow, ajustar: impl FnOnce(&WebviewWindow) + 'static) {
+        let Ok(g) = j.gtk_window() else { return };
+        let g = g.upcast::<gtk::Widget>();
+        if !g.is_visible() {
+            return ajustar(j);
+        }
+        g.hide();
+        let j = j.clone();
+        gtk::glib::timeout_add_local_once(Duration::from_millis(250), move || {
+            g.show();
+            ajustar(&j);
+            anotar(&j, "remapeada");
+        });
+    }
+
+    fn anotar(j: &WebviewWindow, o_que: &str) {
+        escrever(&format!("{} {o_que}: tela={:?} posicao={:?}", j.label(), tela(), j.outer_position().ok().map(|p| (p.x, p.y))));
+    }
+
+    /// Registro pequeno, só no seu PC: ~/.config/com.myeva.app/janelas.log
+    fn escrever(texto: &str) {
+        use std::io::Write;
+        let caminho = crate::ponte::arquivo_ponte().with_file_name("janelas.log");
+        if let Some(p) = caminho.parent() {
+            let _ = std::fs::create_dir_all(p);
+        }
+        let grande = std::fs::metadata(&caminho).is_ok_and(|m| m.len() > 64 * 1024);
+        let hora = gtk::glib::DateTime::now_local().ok().and_then(|d| d.format("%F %T").ok()).unwrap_or_default();
+        if let Ok(mut f) = std::fs::OpenOptions::new().create(true).write(true).append(!grande).truncate(grande).open(caminho) {
+            let _ = writeln!(f, "{hora} v{} {texto}", env!("CARGO_PKG_VERSION"));
+        }
     }
 
     /// Chamar na thread principal (GTK).
@@ -390,6 +513,9 @@ fn main() {
                 // Só aparece com a Eva ligada.
                 .set_visible(false)?;
 
+            #[cfg(target_os = "linux")]
+            linux::abrir_quando_pronta(app.handle());
+            #[cfg(not(target_os = "linux"))]
             central::abrir(app.handle())?;
             Ok(())
         })

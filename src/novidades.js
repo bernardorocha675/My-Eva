@@ -3,6 +3,11 @@
 // Tipos: "Novo", "Melhor" e "Corrigido".
 window.NOVIDADES = [
   {
+    versao: "1.1.4",
+    resumo: "No Linux, a Central espera a tela ficar pronta no login",
+    itens: [["Corrigido", "No Linux, o clique atravessava a Central depois do login"]],
+  },
+  {
     versao: "1.1.3",
     resumo: "Correções no Linux: mancha na animação e cliques depois do login",
     itens: [
