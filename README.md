@@ -2,7 +2,7 @@
 
 Companheira de mesa pessoal pro Windows e pro Linux (Ubuntu/GNOME), em PT-BR. Ela fica no topo da tela, no centro, e mostra o que está rolando no PC: a bateria do controle, a música e os avisos do Claude Code. Dá pra responder ao Claude direto por ela.
 
-Ela **não é uma IA**. É um programa leve que roda localmente e não manda nada seu pra internet. A atualização pela Central está pronta, mas **desativada**: só passa a consultar a internet quando houver endereço e chave pública em `plugins.updater` (`tauri.conf.json`), e dá pra desligar em Ajustes.
+Ela **não é uma IA**. É um programa leve que roda localmente e não manda nada seu pra internet. Só a Central usa a internet: ao abrir, ela consulta no GitHub se há versão nova e baixa a atualização assinada. Dá pra desligar em Ajustes.
 
 **Versão atual: 1.1.1**
 
@@ -121,7 +121,7 @@ src-tauri/src/
   musica_windows.rs  música pelos controles de mídia do Windows
   musica_linux.rs    música pelo MPRIS (+ testes)
   central.rs         Central: liga e desliga a Eva
-  atualizacao.rs     atualização pela Central (parada até ter endereço e chave)
+  atualizacao.rs     atualização pela Central
   ponte.rs           "interfone" com o Claude Code (+ testes)
 ```
 

@@ -7,6 +7,7 @@ window.NOVIDADES = [
     resumo: "Central para ligar e desligar a Eva e correções no Linux",
     itens: [
       ["Novo", "Central para ligar e desligar a Eva"],
+      ["Novo", "Atualiza sozinha e mostra o que mudou"],
       ["Novo", "Pergunta antes de desligar com pedido esperando"],
       ["Corrigido", "No Linux, some certo e abre no centro"],
     ],

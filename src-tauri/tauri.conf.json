@@ -58,7 +58,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEREMDMxRDk5QUY0M0M0NzMKUldSenhFT3ZtUjBEM2FkRVZidUQ5a1dTYkFrTkpiYVQ4SkxaQmVzRW1BTG9sZmNXS0o2bmlvVTkK",
       "endpoints": ["https://github.com/bernardorocha675/My-Eva/releases/latest/download/latest.json"],
       "requireSignedVersion": true
     }
